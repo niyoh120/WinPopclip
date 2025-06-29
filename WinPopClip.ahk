@@ -304,8 +304,16 @@ Link:
         Run, %linkText%
 Return
 
+GoogleTranslate:
+    Gui, Destroy
+    ; Google Translate不需要特殊处理，使用默认Mode 0
+    urlEncodedText:=UriEncode(selectText)
+    Run, https://translate.google.com/#view=home&op=translate&sl=auto&tl=%userLanguage%&text=%urlEncodedText%
+Return
+
 DeepLTranslate:
     Gui, Destroy
+    ; DeepL需要特殊处理，使用Mode 1
     selectText:=UriEncode(selectText,1)
     Run, https://www.deepl.com/translator#en/%userLanguageDeepL%/%selectText%
 Return
@@ -314,10 +322,15 @@ UriEncode(Uri, Mode := 0, RE="[0-9A-Za-z]"){
     VarSetCapacity(Var,StrPut(Uri,"UTF-8"),0),StrPut(Uri,&Var,"UTF-8")
     While Code:=NumGet(Var,A_Index-1,"UChar")
         Res.=(Chr:=Chr(Code))~=RE?Chr:Format("%{:02X}",Code)
+
     Res:=StrReplace(Res, "&", "%26")
     Res:=StrReplace(Res, "`n", "%0A")
     If (Mode==1)
+    {
         Res:=StrReplace(Res, "%2F", "%5C%2F")
+        ; *** FIX: 在Mode 1下，同样对 | 字符进行转义处理 ***
+        Res:=StrReplace(Res, "%7C", "%5C%7C")
+    }
     Return,Res
 }
 
